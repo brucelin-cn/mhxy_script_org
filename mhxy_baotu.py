@@ -64,8 +64,16 @@ class Baotu(MhxyScript):
         cooldown(0.5)
         ms = locateBaotuMission()
         if ms is not None:
+            log("baotu mission fater locateBaotuMission")
             pyautogui.doubleClick(ms.x, ms.y)
         else:
+            log("baotu mission fater locateBaotuMission 2")
+            ms = Util.locateCenterOnScreen('resources/baotu/baotu_tingtingwufang2.png')
+            if ms is not None:
+                pyautogui.leftClick(ms.x, ms.y)
+            else:
+                log("baotu mission failed")
+            
             Util.doubleClick(-3, 3.8 + self._chasepos * 2)
         # 等待任务完成
         timep = datetime.datetime.now()

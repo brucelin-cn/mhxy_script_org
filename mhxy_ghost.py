@@ -130,6 +130,7 @@ class Ghost(MhxyScript):
         if tag is not None:
             cooldown(1)
             pyautogui.leftClick(tag.x + relativeX2Act(3.5), tag.y + relativeY2Act(0.2))
+            log("ghost go ")
             waitUtilFindPic('resources/ghost/start_ghost0.png')
         else:
             pl.playsound('resources/common/music.mp3')
@@ -140,6 +141,7 @@ class Ghost(MhxyScript):
     def do(self):
         # _thread.start_new_thread(resumeIfDisconnect, ("Thread-1", 2,))
         def initStartLocation():
+            log("ghost do ")
             return Util.locateCenterOnScreen('resources/ghost/start_ghost0.png')
 
         while self._flag:

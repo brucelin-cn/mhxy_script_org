@@ -211,7 +211,7 @@ def doUtilFindPic(pic, do, warnTimes=None):
 def waitUtilFindPic(pic):
     def do(locate, idx, times):
         cooldown(1)
-
+    log('waitUtilFindPic',pic)
     return doUtilFindPic(pic, do)
 
 
@@ -274,7 +274,7 @@ def gotoActivity(picArr):
         if join_activity is None:
             cooldown(1)
             return None, None
-        print("找到活动", picArr[idx])
+        log("找到活动", picArr[idx])
         return idx, join_activity
 
     cooldown(0.5)
@@ -331,6 +331,7 @@ class Util:
 
     @staticmethod
     def locateCenterOnScreen(pic, region=None, confidence=0.9):
+        log('locateCenterOnScreen',pic,confidence)
         if region is None:
             region = (frame.left, frame.top, frameSize[0], frameSize[1])
         cfd = confidence if Util.__openCVEnable() else None
@@ -548,7 +549,8 @@ class MhxyScript:
         self._flag = False
 
     def do(self):
-        pass
+        if gotoActivity(r"resources/richang/shimeng2.png"):
+            pass
 
 
 class __EscapeTeam(MhxyScript):

@@ -2,6 +2,7 @@ from mhxy_baotu import *
 from mhxy_dati import *
 from mhxy_mijing import *
 from mhxy_yabiao import *
+from mhxy_shimeng import *
 
 # 秘境、押镖、答题、宝图
 if __name__ == '__main__':
@@ -10,6 +11,7 @@ if __name__ == '__main__':
     parser.add_argument('-m', '--mission', required=False, default='baotu,mijing,dati,yabiao', type=str)
     parser.add_argument('-sd', '--shutdown', required=False, default="False", type=str)
     parser.add_argument('-w', '--wait', required=False, default="False", type=str)
+    parser.add_argument('-tac', '--taskAutoCount', required=False, default="False", type=bool)
     args = parser.parse_args()
     missionSet = set(args.mission.split(","))
     cooldown(1)
@@ -23,13 +25,17 @@ if __name__ == '__main__':
                baotu.mission()
             baotu.do()
         if 'mijing' in missionSet:
-            if gotoActivity(r'resources/richang/mijing.png'):
-                MiJing(config=config).do()
+            for i in range(5):
+                if gotoActivity(r'resources/richang/mijing.png'):
+                    MiJing(config=config).do()
         if 'dati' in missionSet:
             DaTi(config=config).do()
         if 'yabiao' in missionSet:
             if gotoActivity(r'resources/richang/yabiao.png'):
                 YaBiao(config=config).do()
+        if 'shimeng' in missionSet:
+            if gotoActivity(r'resources/richang/shimeng2.png'):
+                Shimeng(config=config).do()
 
     if args.wait == "True":
         time = datetime.datetime.now()

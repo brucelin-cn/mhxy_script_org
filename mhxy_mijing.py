@@ -18,7 +18,7 @@ class MiJing(MhxyScript):
                 Util.leftClick(1, 2)
                 cooldown(0.5)
                 waitThenClickUtilFindPic(r'resources/richang/daxue.png')
-        print("开始位置是点击陆萧然的对话框")
+        log("开始位置是点击陆萧然的对话框")
         cooldown(2)
         Util.leftClick(-3, 9.3)
         cooldown(0.8)
@@ -33,7 +33,7 @@ class MiJing(MhxyScript):
             cooldown(1)
             Util.leftClick(-2.5, 12.3)
             btl = Util.locateCenterOnScreen(r'resources/richang/mijing_btl.png')
-            print("关闭可使用物品对继续战斗的遮挡")
+            log("关闭可使用物品对继续战斗的遮挡")
             times += 1
         if btl is None:
             pl.playsound('resources/common/music.mp3')

@@ -69,6 +69,8 @@ class MhxyApplication(QMainWindow, main_win):
         self.mijing_btn.clicked.connect(self.mijingTask)
         self.dati_btn.clicked.connect(self.datiTask)
         self.yabiao_btn.clicked.connect(self.yabiaoTask)
+        self.shimeng_btn.clicked.connect(self.shimengTask)
+        self.jingyanlian_btn.clicked.connect(self.jingyanlianTask)
         # 520
         self.batch_mission520.clicked.connect(self.mission520Task)
         self.fuben_xiashi70_btn.clicked.connect(self.xiashi70Task)
@@ -291,6 +293,9 @@ class MhxyApplication(QMainWindow, main_win):
         if self.dati_chk.isChecked():
             arr.append(self.dati_btn.text())
             mission.append("dati")
+        if self.shimeng_chk.isChecked():
+            arr.append(self.shimeng_btn.text())
+            mission.append("shimeng")
         if self.yabiao_chk.isChecked():
             arr.append(self.yabiao_btn.text())
             mission.append("yabiao")
@@ -343,6 +348,14 @@ class MhxyApplication(QMainWindow, main_win):
     def yabiaoTask(self):
         self.exec_script('mhxy_yabiao', f'-ir {self.getTargetArr()}')
         self.addTask("test", f'{self.yabiao_btn.text()}')
+        
+    def shimengTask(self):
+        self.exec_script('mhxy_shimeng', f'-ir {self.getTargetArr()}')
+        self.addTask("test", f'{self.shimeng_btn.text()}')
+    
+    def jingyanlianTask(self):
+        self.exec_script('mhxy_yabiao', f'-ir {self.getTargetArr()}')
+        self.addTask("test", f'{self.jingyanlian_btn.text()}')
 
     def runCustomerTask(self):
         cmd = f'python{"" if self.black_win.isChecked() else "w"} {self.lineEdit.text()}\\{self.cusomer_ipt.text()} -i {self.getTarget()}'
@@ -416,8 +429,10 @@ class MhxyApplication(QMainWindow, main_win):
 
 
 if __name__ == '__main__':
+    print("aaaaa")
     app = QtWidgets.QApplication(sys.argv)
     MyUiStart = MhxyApplication()
+    print("vbbbb")
     MyUiStart.setFixedSize(MyUiStart.width(), MyUiStart.height())
     MyUiStart.show()
     app.exec()
