@@ -55,10 +55,13 @@ def main() -> None:
         _fail(path_errors, as_json=args.json)
 
     if args.action == "stop":
-        stopped = helper.stopExe()
+        stopped = (
+            helper.stopExe() if args.target == "game" else helper.stopLauncherExe()
+        )
         _print_result(
             {
                 "action": "stop",
+                "target": args.target,
                 "stopped": stopped,
                 "status": helper.status(),
             },
@@ -67,13 +70,20 @@ def main() -> None:
         return
 
     if args.action == "restart":
-        helper.stopExe()
+        if args.target == "game":
+            helper.stopExe()
+        else:
+            helper.stopLauncherExe()
         time.sleep(1)
 
-    if args.skip_if_running and helper.hasExe():
+    already_running = (
+        helper.hasExe() if args.target == "game" else helper.hasLauncherExe()
+    )
+    if args.skip_if_running and already_running:
         _print_result(
             {
                 "action": args.action,
+                "target": args.target,
                 "started": False,
                 "reason": "already running",
                 "status": helper.status(),

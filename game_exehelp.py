@@ -137,8 +137,14 @@ class GameExeHelp:
     def stopExe(self) -> bool:
         return stop_exe(self.exepath)
 
+    def stopLauncherExe(self) -> bool:
+        return stop_exe(self.launcher)
+
     def hasExe(self) -> bool:
         return has_exe(self.exepath)
+
+    def hasLauncherExe(self) -> bool:
+        return has_exe(self.launcher)
 
     def status(self) -> dict:
         game_process = find_process_info(self.exepath)
