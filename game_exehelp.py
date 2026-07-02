@@ -49,6 +49,20 @@ def run_exe(exe_path: str | Path) -> subprocess.Popen:
         raise GameLaunchError(str(error)) from error
 
 
+def run_exe_elevated(exe_path: str | Path) -> None:
+    command = [
+        "powershell",
+        "-NoProfile",
+        "-Command",
+        f"Start-Process -FilePath '{str(exe_path)}' -Verb RunAs",
+    ]
+    completed = subprocess.run(command, check=False)
+    if completed.returncode != 0:
+        raise GameLaunchError(
+            f"failed to request elevated launcher start, exit code={completed.returncode}"
+        )
+
+
 def find_process_by_exe(exe_path: str | Path) -> Optional[psutil.Process]:
     expected = _normalize_path(exe_path)
     for proc in psutil.process_iter(["pid", "exe", "name"]):
@@ -63,6 +77,20 @@ def find_process_by_exe(exe_path: str | Path) -> Optional[psutil.Process]:
 
 def has_exe(exe_path: str | Path) -> bool:
     return find_process_by_exe(exe_path) is not None
+
+
+def find_process_info(exe_path: str | Path) -> Optional[dict]:
+    process = find_process_by_exe(exe_path)
+    if process is None:
+        return None
+    try:
+        return {
+            "pid": process.pid,
+            "name": process.name(),
+            "exe": process.exe(),
+        }
+    except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+        return {"pid": process.pid}
 
 
 def stop_exe(exe_path: str | Path) -> bool:
@@ -97,6 +125,15 @@ class GameExeHelp:
     def runExe(self) -> subprocess.Popen:
         return run_exe(self.launcher)
 
+    def runExeElevated(self) -> None:
+        run_exe_elevated(self.launcher)
+
+    def runGameExe(self) -> subprocess.Popen:
+        return run_exe(self.exepath)
+
+    def runGameExeElevated(self) -> None:
+        run_exe_elevated(self.exepath)
+
     def stopExe(self) -> bool:
         return stop_exe(self.exepath)
 
@@ -104,10 +141,15 @@ class GameExeHelp:
         return has_exe(self.exepath)
 
     def status(self) -> dict:
-        process = find_process_by_exe(self.exepath)
+        game_process = find_process_info(self.exepath)
+        launcher_process = find_process_info(self.launcher)
         return {
-            "running": process is not None,
-            "pid": None if process is None else process.pid,
+            "running": game_process is not None,
+            "pid": None if game_process is None else game_process["pid"],
+            "game_process": game_process,
+            "launcher_running": launcher_process is not None,
+            "launcher_pid": None if launcher_process is None else launcher_process["pid"],
+            "launcher_process": launcher_process,
             "game_path": self.exepath,
             "launcher_path": self.launcher,
             "path_errors": self.validate_paths(),

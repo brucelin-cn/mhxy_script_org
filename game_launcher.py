@@ -31,6 +31,17 @@ def main() -> None:
         action="store_true",
         help="Do not relaunch if game exe is already running",
     )
+    parser.add_argument(
+        "--elevated",
+        action="store_true",
+        help="Request administrator elevation when starting the launcher",
+    )
+    parser.add_argument(
+        "--target",
+        choices=["launcher", "game"],
+        default="launcher",
+        help="Choose whether to start the launcher or the game executable directly",
+    )
     args = parser.parse_args()
 
     helper = GameExeHelp()
@@ -72,7 +83,16 @@ def main() -> None:
         return
 
     try:
-        helper.runExe()
+        if args.elevated:
+            if args.target == "game":
+                helper.runGameExeElevated()
+            else:
+                helper.runExeElevated()
+        else:
+            if args.target == "game":
+                helper.runGameExe()
+            else:
+                helper.runExe()
     except GameLaunchError as error:
         _fail([str(error)], as_json=args.json)
     if args.wait_seconds > 0:
@@ -81,6 +101,7 @@ def main() -> None:
     _print_result(
         {
             "action": args.action,
+            "target": args.target,
             "started": True,
             "status": helper.status(),
         },
