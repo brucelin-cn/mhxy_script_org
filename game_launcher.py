@@ -3,6 +3,7 @@ import json
 import time
 
 from game_exehelp import GameExeHelp
+from game_exehelp import GameLaunchError
 
 
 def main() -> None:
@@ -70,7 +71,10 @@ def main() -> None:
         )
         return
 
-    helper.runExe()
+    try:
+        helper.runExe()
+    except GameLaunchError as error:
+        _fail([str(error)], as_json=args.json)
     if args.wait_seconds > 0:
         time.sleep(args.wait_seconds)
 

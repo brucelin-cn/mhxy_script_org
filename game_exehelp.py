@@ -9,6 +9,10 @@ from typing import Optional
 import psutil
 
 
+class GameLaunchError(Exception):
+    pass
+
+
 @dataclass
 class GameExeConfig:
     game_path: Path
@@ -32,10 +36,17 @@ def _normalize_path(path: str | Path) -> str:
 
 
 def run_exe(exe_path: str | Path) -> subprocess.Popen:
-    return subprocess.Popen(
-        [str(exe_path)],
-        creationflags=subprocess.CREATE_NEW_CONSOLE,
-    )
+    try:
+        return subprocess.Popen(
+            [str(exe_path)],
+            creationflags=subprocess.CREATE_NEW_CONSOLE,
+        )
+    except OSError as error:
+        if getattr(error, "winerror", None) == 740:
+            raise GameLaunchError(
+                "launcher requires elevation, run the command as administrator"
+            ) from error
+        raise GameLaunchError(str(error)) from error
 
 
 def find_process_by_exe(exe_path: str | Path) -> Optional[psutil.Process]:
