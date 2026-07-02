@@ -1,85 +1,103 @@
-import argparse
 import os
-import time
+import signal
 import subprocess
-import psutil
 from configparser import ConfigParser
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Optional
 
-from mhxy import *
-from pic_target import *
-
-
-def runExe_(exePath):
-    # 启动程序
-    process = subprocess.Popen(exePath, creationflags=subprocess.CREATE_NEW_CONSOLE)
-    return process
+import psutil
 
 
-def stopExe_(exePath):
-    for proc in psutil.process_iter():
-        try:
-            # 检查进程的可执行文件路径是否与给定路径匹配
-            # log(f"进程ID {proc.exe() }",exePath)
-            if proc.exe() == exePath:
-                # 找到进程后，获取其PID
-                pid = proc.pid
-                # 使用os.kill结束进程
-                os.kill(pid, 9)  # 9是SIGKILL信号，强制结束进程
-                log(f"已结束进程ID {pid}")
-        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess) as e:
-            # 这些异常处理确保了如果进程不存在、访问被拒绝或进程是僵尸进程时，代码不会崩溃
-            log(f"结束进程ID", "失败", e)
-            pass
+@dataclass
+class GameExeConfig:
+    game_path: Path
+    launcher_path: Path
 
 
-def hasExe_(exePath):
-    for proc in psutil.process_iter():
-        try:
-            # 检查进程的可执行文件路径是否与给定路径匹配
-            # log(f"进程ID {proc.exe() }",exePath)
-            if proc.exe() == exePath:
-                log(f"found进程ID")
-                return True
-        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess) as e:
-            # 这些异常处理确保了如果进程不存在、访问被拒绝或进程是僵尸进程时，代码不会崩溃
-            log(f"结束进程ID", "失败", e)
-            pass
-
-    return False
-class GameExeHelp:
-
-    def __init__(self):
-
-        conn = ConfigParser()
-        file_path = os.path.join(os.path.abspath("."), "resources/common.ini")
-        if not os.path.exists(file_path):
-            raise FileNotFoundError("文件不存在")
-        conn.read(file_path, encoding="utf-8")
-        self.exepath = conn.get("main", "path")
-        self.launcher= conn.get("main","launcher")
-
-    def runExe(self):
-        runExe_(exePath=self.launcher)
-
-    def stopExe(self):
-        stopExe_(exePath=self.exepath)
-    
-    def hasExe(self):
-        hasExe_(exePath=self.exepath)
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="OF Generate")
-    parser.add_argument("-i", "--idx", default=0, type=int)
-    parser.add_argument(
-        "-m", "--mission", default="shimeng,zhuxian,jingyanlian", type=str
+def load_game_exe_config(config_path: str = "resources/common.ini") -> GameExeConfig:
+    parser = ConfigParser()
+    ini_path = Path(config_path)
+    if not ini_path.exists():
+        raise FileNotFoundError(f"Config file not found: {ini_path}")
+    parser.read(ini_path, encoding="utf-8")
+    return GameExeConfig(
+        game_path=Path(parser.get("main", "path")),
+        launcher_path=Path(parser.get("main", "launcher")),
     )
-    args = parser.parse_args()
-   
-    exeHelp = GameExeHelp()
-    exeHelp.stopExe()
-    exeHelp.runExe()
 
-   
-    
-    log("runed")
+
+def _normalize_path(path: str | Path) -> str:
+    return os.path.normcase(os.path.normpath(str(path)))
+
+
+def run_exe(exe_path: str | Path) -> subprocess.Popen:
+    return subprocess.Popen(
+        [str(exe_path)],
+        creationflags=subprocess.CREATE_NEW_CONSOLE,
+    )
+
+
+def find_process_by_exe(exe_path: str | Path) -> Optional[psutil.Process]:
+    expected = _normalize_path(exe_path)
+    for proc in psutil.process_iter(["pid", "exe", "name"]):
+        try:
+            proc_exe = proc.info.get("exe")
+            if proc_exe and _normalize_path(proc_exe) == expected:
+                return proc
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            continue
+    return None
+
+
+def has_exe(exe_path: str | Path) -> bool:
+    return find_process_by_exe(exe_path) is not None
+
+
+def stop_exe(exe_path: str | Path) -> bool:
+    stopped = False
+    expected = _normalize_path(exe_path)
+    for proc in psutil.process_iter(["pid", "exe", "name"]):
+        try:
+            proc_exe = proc.info.get("exe")
+            if proc_exe and _normalize_path(proc_exe) == expected:
+                os.kill(proc.pid, signal.SIGTERM)
+                stopped = True
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            continue
+    return stopped
+
+
+class GameExeHelp:
+    def __init__(self, config_path: str = "resources/common.ini") -> None:
+        self.config_path = config_path
+        self.config = load_game_exe_config(config_path)
+        self.exepath = str(self.config.game_path)
+        self.launcher = str(self.config.launcher_path)
+
+    def validate_paths(self) -> list[str]:
+        errors = []
+        if not self.config.game_path.exists():
+            errors.append(f"game exe not found: {self.config.game_path}")
+        if not self.config.launcher_path.exists():
+            errors.append(f"launcher exe not found: {self.config.launcher_path}")
+        return errors
+
+    def runExe(self) -> subprocess.Popen:
+        return run_exe(self.launcher)
+
+    def stopExe(self) -> bool:
+        return stop_exe(self.exepath)
+
+    def hasExe(self) -> bool:
+        return has_exe(self.exepath)
+
+    def status(self) -> dict:
+        process = find_process_by_exe(self.exepath)
+        return {
+            "running": process is not None,
+            "pid": None if process is None else process.pid,
+            "game_path": self.exepath,
+            "launcher_path": self.launcher,
+            "path_errors": self.validate_paths(),
+        }
