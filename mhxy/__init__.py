@@ -5,7 +5,10 @@ import sys
 import threading
 import time
 
-import playsound as pl
+try:
+    import playsound as pl
+except ImportError:
+    pl = None
 import pyautogui
 import pydirectinput
 import pyperclip
@@ -28,6 +31,13 @@ def log(*content, **kwargs):
         for each in content:
             logger.log(level, f'[{now}] {each}')
     print(*content)
+
+
+def play_alert_sound(path='resources/common/music.mp3'):
+    if pl is None:
+        log(f"playsound unavailable, skip alert: {path}", level=logging.WARNING)
+        return
+    pl.playsound(path)
 
 def handle_exception(exc_type, exc_value, exc_traceback):
     now = datetime.datetime.now()

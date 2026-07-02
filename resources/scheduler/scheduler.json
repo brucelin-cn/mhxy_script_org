@@ -1,0 +1,56 @@
+{
+  "windows": [0],
+  "mission_order": ["baotu", "mijing", "dati", "yabiao", "shimeng"],
+  "stop_condition": {
+    "mode": "any",
+    "round_limit": 1,
+    "time_limit_minutes": 180,
+    "resource_limit_enabled": false
+  },
+  "runtime": {
+    "poll_interval_seconds": 2,
+    "max_task_failures": 2,
+    "max_window_failures": 5
+  },
+  "recovery": {
+    "level_1": true,
+    "level_2": true,
+    "level_3": false
+  },
+  "reporting": {
+    "enable_screenshots": false,
+    "enable_ui_reporting": false
+  },
+  "missions": {
+    "baotu": {
+      "enabled": true,
+      "timeout_seconds": 900,
+      "done_images": ["resources/baotu/use_baotu.png"],
+      "recovery_levels": ["level_1", "level_2"]
+    },
+    "mijing": {
+      "enabled": true,
+      "timeout_seconds": 1200,
+      "done_images": ["resources/richang/mijing_resume.png"],
+      "recovery_levels": ["level_1", "level_2"]
+    },
+    "dati": {
+      "enabled": true,
+      "timeout_seconds": 600,
+      "done_images": ["resources/richang/sanjieqiyuan_end.png"],
+      "recovery_levels": ["level_1"]
+    },
+    "yabiao": {
+      "enabled": true,
+      "timeout_seconds": 900,
+      "done_images": ["resources/richang/yabiao_finish.png"],
+      "recovery_levels": ["level_1", "level_2"]
+    },
+    "shimeng": {
+      "enabled": true,
+      "timeout_seconds": 1800,
+      "done_images": ["resources/shimeng/wancheng_queding.png"],
+      "recovery_levels": ["level_1", "level_2"]
+    }
+  }
+}
