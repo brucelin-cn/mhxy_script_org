@@ -2,3 +2,13 @@
 __pycache__/
 *.log
 .log
+work/
+
+# ponytail: launcher automation debug captures; keep local unless a specific image becomes a template.
+desktop_after_*.png
+game_after_login_click.png
+game_window.png
+launcher_after_click.png
+launcher_hwnd.png
+login_hwnd.png
+login_window.png
